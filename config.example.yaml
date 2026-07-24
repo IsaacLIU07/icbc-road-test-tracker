@@ -1,0 +1,44 @@
+# Copy this file to config.yaml and fill in your own details.
+# config.yaml is gitignored and never shared - it holds your personal info.
+
+icbc:
+  last_name: ""
+  licence_number: ""
+  keyword: ""
+  exam_class: 7 # 5 = car (basic), 7 = N road test. See ICBC for other classes.
+
+licensing:
+  # Date your L (learner's licence) was issued, YYYY-MM-DD.
+  # Used to compute the earliest date you're legally allowed to book a road test.
+  l_issue_date: "YYYY-MM-DD"
+  # true = you completed an ICBC-approved driver training course (9-month minimum wait)
+  # false = standard 12-month minimum wait
+  completed_driver_training_course: false
+
+location:
+  name: "" # human-readable, just for your own reference in notifications
+  a_pos_id: null # numeric ICBC location ID - see SETUP.md for how to find it
+
+date_rules:
+  # Any number of acceptable windows. A slot is acceptable if it falls in AT LEAST ONE of these.
+  # start: null means "from your earliest eligible date"
+  allowed_ranges:
+    - { start: null, end: "2026-08-01" }
+    - { start: "2026-08-01", end: "2026-10-01" }
+  # Weekday names that are never acceptable, regardless of range.
+  blocked_weekdays: ["Monday", "Tuesday"]
+  # Specific individual dates that are never acceptable, regardless of range.
+  blocked_dates: ["2026-10-02"]
+
+polling:
+  interval_seconds_min: 120
+  interval_seconds_max: 300
+
+notifications:
+  telegram:
+    bot_token: ""
+    chat_id: ""
+
+# Where the notification button sends you. ICBC doesn't support deep-linking to a
+# specific slot, so this is the general booking entry point - you pick the slot yourself.
+booking_url: "https://icbc.com/driver-licensing/visit-dl-office/Book-a-road-test"

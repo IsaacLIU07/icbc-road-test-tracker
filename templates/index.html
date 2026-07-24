@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ICBC Road Test Tracker — Setup</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+<div class="page">
+
+  <header class="page-header">
+    <h1>ICBC Road Test Tracker</h1>
+    <p class="subtitle">Set up your rules once — get a Telegram ping the moment a matching slot opens.</p>
+  </header>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <div class="card status-card">
+    <div>
+      <span class="field-label" style="margin-bottom:2px">Notifications</span>
+      <span id="status-text" class="status-text">Checking…</span>
+    </div>
+    <button type="button" class="btn btn-secondary btn-small" id="btn-toggle-pause">…</button>
+  </div>
+  <p class="hint" style="margin:-10px 0 20px">
+    You can also pause/resume anytime from Telegram itself by sending <code>/stop</code> or <code>/start</code> to your bot.
+  </p>
+
+  <form id="config-form">
+
+    <section class="card">
+      <h2>1 &middot; ICBC account</h2>
+      <p class="hint">Same details you'd use to log into ICBC's own booking site.</p>
+      <div class="grid grid-3">
+        <label>Last name
+          <input type="text" name="last_name" required autocomplete="off" />
+        </label>
+        <label>Licence number
+          <input type="text" name="licence_number" required autocomplete="off" />
+        </label>
+        <label>Keyword
+          <input type="password" name="keyword" required autocomplete="off" />
+        </label>
+      </div>
+      <label class="inline-label">Exam class
+        <div class="segmented" id="exam-class">
+          <button type="button" class="seg-btn active" data-value="7">Class 7 (N)</button>
+          <button type="button" class="seg-btn" data-value="5">Class 5</button>
+        </div>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>2 &middot; Licensing eligibility</h2>
+      <p class="hint">BC requires holding your L for 12 months, or 9 months if you completed an approved driver training course, before you can book this test.</p>
+      <div class="grid grid-2">
+        <label>L issue date
+          <input type="date" name="l_issue_date" required />
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="completed_driver_training_course" />
+          I completed an approved driver training course (9-month wait)
+        </label>
+      </div>
+      <p class="computed" id="eligibility-preview">Fill in your L issue date to see your earliest eligible test date.</p>
+    </section>
+
+    <section class="card">
+      <h2>3 &middot; Test centre</h2>
+      <div class="grid grid-2">
+        <label>Location name
+          <input type="text" name="location_name" placeholder="e.g. Vancouver" required />
+        </label>
+        <label>Location ID (aPosID)
+          <input type="number" name="a_pos_id" required />
+        </label>
+      </div>
+      <details class="help">
+        <summary>How do I find my location's ID?</summary>
+        <ol>
+          <li>Go to ICBC's real road test booking site and start booking a test (you can back out before actually booking).</li>
+          <li>Open your browser's DevTools (F12) → <b>Network</b> tab, filter to Fetch/XHR.</li>
+          <li>Select your test centre in the booking flow.</li>
+          <li>Find the request to <code>getAvailableAppointments</code>, open it, and look at the request payload for <code>"aPosID": &lt;number&gt;</code>.</li>
+        </ol>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>4 &middot; Acceptable dates</h2>
+      <p class="hint">A slot notifies you if it falls in <b>any</b> of these ranges, and isn't excluded below.</p>
+
+      <div id="ranges-list"></div>
+      <button type="button" class="btn btn-secondary btn-small" id="add-range">+ Add date range</button>
+
+      <div class="grid grid-2" style="margin-top:20px">
+        <div>
+          <span class="field-label">Never on these weekdays</span>
+          <div class="weekday-grid" id="weekday-grid"></div>
+        </div>
+        <div>
+          <span class="field-label">Never on these specific dates</span>
+          <div id="blocked-dates-list"></div>
+          <button type="button" class="btn btn-secondary btn-small" id="add-blocked-date">+ Add excluded date</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>5 &middot; Polling frequency</h2>
+      <div class="grid grid-2">
+        <label>Check at least every
+          <div class="unit-input"><input type="number" name="interval_seconds_min" min="30" value="120" required /><span>seconds</span></div>
+        </label>
+        <label>Check at most every
+          <div class="unit-input"><input type="number" name="interval_seconds_max" min="30" value="300" required /><span>seconds</span></div>
+        </label>
+      </div>
+      <p class="hint">The tracker waits a random amount of time in this range between checks, to be a polite, low-impact user of ICBC's site.</p>
+    </section>
+
+    <section class="card">
+      <h2>6 &middot; Telegram notifications</h2>
+      <ol class="hint">
+        <li>Message <b>@BotFather</b> on Telegram, send <code>/newbot</code>, and copy the token it gives you.</li>
+        <li>Message your new bot anything (e.g. "hi") so Telegram knows who you are.</li>
+        <li>Paste the token below, then click "Detect" to fill in your chat ID automatically.</li>
+      </ol>
+      <div class="grid grid-2">
+        <label>Bot token
+          <input type="text" name="bot_token" required autocomplete="off" />
+        </label>
+        <label>Chat ID
+          <div class="input-with-btn">
+            <input type="text" name="chat_id" required autocomplete="off" />
+            <button type="button" class="btn btn-secondary btn-small" id="detect-chat-id">Detect</button>
+          </div>
+        </label>
+      </div>
+
+      <details class="help">
+        <summary>Advanced: booking link</summary>
+        <label>Link opened by the notification button
+          <input type="url" name="booking_url" value="https://icbc.com/driver-licensing/visit-dl-office/Book-a-road-test" />
+        </label>
+      </details>
+    </section>
+
+  </form>
+
+  <div class="action-bar">
+    <div id="action-status" class="action-status"></div>
+    <div class="action-buttons">
+      <button type="button" class="btn btn-secondary" id="btn-test-notify">Send test notification</button>
+      <button type="button" class="btn btn-secondary" id="btn-dry-run">Check availability now</button>
+      <button type="button" class="btn btn-primary" id="btn-save">Save configuration</button>
+    </div>
+  </div>
+
+  <div id="results" class="card hidden"></div>
+
+  <footer class="page-footer">
+    Saves to <code>config.yaml</code> in this folder. Once saved, run the tracker with <code>py main.py</code> or register <code>run_tracker.ps1</code> in Task Scheduler — see SETUP.md.
+  </footer>
+
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
