@@ -280,8 +280,10 @@ function renderResults(data) {
 // ---------- pause / resume ----------
 
 const statusText = document.getElementById("status-text");
+const lastCheckText = document.getElementById("last-check-text");
 const togglePauseBtn = document.getElementById("btn-toggle-pause");
 let currentlyPaused = false;
+let lastCheck = null;
 
 function renderStatus() {
   if (currentlyPaused) {
@@ -289,10 +291,11 @@ function renderStatus() {
     statusText.className = "status-text paused";
     togglePauseBtn.textContent = "Resume notifications";
   } else {
-    statusText.textContent = "Active — checking for openings";
+    statusText.textContent = "Active, checking for openings";
     statusText.className = "status-text active";
     togglePauseBtn.textContent = "Pause notifications";
   }
+  lastCheckText.textContent = lastCheck ? `Last successful check: ${lastCheck}` : "No successful check yet";
 }
 
 async function refreshStatus() {
@@ -300,9 +303,11 @@ async function refreshStatus() {
     const res = await fetch("/api/status");
     const data = await res.json();
     currentlyPaused = !!data.paused;
+    lastCheck = data.last_check || null;
   } catch (err) {
     // control.json doesn't exist yet - default to active
     currentlyPaused = false;
+    lastCheck = null;
   }
   renderStatus();
 }

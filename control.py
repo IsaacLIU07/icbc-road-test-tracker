@@ -10,7 +10,7 @@ from pathlib import Path
 class ControlStore:
     def __init__(self, path: Path):
         self.path = path
-        self._data = {"paused": False, "telegram_offset": 0}
+        self._data = {"paused": False, "telegram_offset": 0, "last_check": None}
         self._load()
 
     def _load(self) -> None:
@@ -37,4 +37,12 @@ class ControlStore:
 
     def set_telegram_offset(self, value: int) -> None:
         self._data["telegram_offset"] = value
+        self._save()
+
+    @property
+    def last_check(self) -> str | None:
+        return self._data.get("last_check")
+
+    def set_last_check(self, value: str) -> None:
+        self._data["last_check"] = value
         self._save()

@@ -73,7 +73,7 @@ def dry_run():
 @app.get("/api/status")
 def get_status():
     control = ControlStore(core.CONTROL_PATH)
-    return jsonify({"paused": control.paused})
+    return jsonify({"paused": control.paused, "last_check": control.last_check})
 
 
 @app.post("/api/pause")

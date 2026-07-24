@@ -167,7 +167,9 @@ def process_telegram_commands(cfg: dict, control, notifier: TelegramNotifier) ->
             control.set_paused(False)
             notifier.send("Notifications resumed.")
         elif text.startswith("/status"):
-            notifier.send("Currently paused." if control.paused else "Currently active and checking for openings.")
+            state_line = "Paused." if control.paused else "Active and checking for openings."
+            check_line = f"Last successful check: {control.last_check}." if control.last_check else "No successful check completed yet."
+            notifier.send(f"{state_line}\n{check_line}")
 
 
 def detect_telegram_chat_id(bot_token: str) -> str:

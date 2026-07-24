@@ -16,6 +16,7 @@ import argparse
 import random
 import sys
 import time
+from datetime import datetime
 
 import core
 from control import ControlStore
@@ -70,6 +71,11 @@ def main() -> None:
     interval_max = cfg["polling"]["interval_seconds_max"]
 
     print("Starting continuous polling. Send /stop or /start to the bot to pause/resume. Ctrl+C to quit entirely.")
+    try:
+        notifier.send(f"ICBC tracker started. Watching {cfg['location']['name']} for openings.")
+    except Exception as exc:
+        print(f"Error sending startup notification: {exc}", file=sys.stderr)
+
     while True:
         try:
             core.process_telegram_commands(cfg, control, notifier)
@@ -81,6 +87,7 @@ def main() -> None:
         else:
             try:
                 _, slots, _ = core.check_availability(cfg)
+                control.set_last_check(datetime.now().strftime("%Y-%m-%d %H:%M"))
                 keys = [f"{d.isoformat()}|{t}" for d, t in slots]
                 new_keys = state.diff_and_update(keys)
                 for key in new_keys:
